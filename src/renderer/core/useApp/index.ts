@@ -13,6 +13,7 @@ import useEventListener from './useEventListener'
 import useDeeplink from './useDeeplink'
 import usePlayer from './usePlayer'
 import useSettingSync from './useSettingSync'
+import { initDownloadedMapListener } from '@renderer/store/download/useDownloadedMap'
 import { useRouter } from '@common/utils/vueRouter'
 import handleListAutoUpdate from './listAutoUpdate'
 
@@ -68,6 +69,7 @@ export default () => {
       void initSyncService()
       void initOpenAPI()
       void initStatusbarLyric()
+      initDownloadedMapListener()
       sendInited()
 
       handleListAutoUpdate()

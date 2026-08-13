@@ -1,4 +1,5 @@
 import { getDownloadFilePath } from '@renderer/utils/music'
+import { encodePath } from '@common/utils/common'
 
 import {
   getMusicUrl as getOnlineMusicUrl,
@@ -16,7 +17,7 @@ export const getMusicUrl = async({ musicInfo, isRefresh, allowToggleSource = tru
 }): Promise<string> => {
   if (!isRefresh) {
     const path = await getDownloadFilePath(musicInfo, buildSavePath(musicInfo))
-    if (path) return path
+    if (path) return 'file://' + encodePath(path)
   }
 
   return getOnlineMusicUrl({ musicInfo: musicInfo.metadata.musicInfo, isRefresh, onToggleSource, allowToggleSource })

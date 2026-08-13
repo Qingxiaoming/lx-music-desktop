@@ -1,6 +1,6 @@
 import { useRouter } from '@common/utils/vueRouter'
 import musicSdk from '@renderer/utils/musicSdk'
-import { openUrl, clipboardWriteText } from '@common/utils/electron'
+import { openUrl, clipboardWriteText, trashItem } from '@common/utils/electron'
 import { dialog } from '@renderer/plugins/Dialog'
 import { useI18n } from '@renderer/plugins/i18n'
 import { removeListMusics } from '@renderer/store/list/action'
@@ -9,6 +9,9 @@ import { formatMusicName, toOldMusicInfo } from '@renderer/utils/index'
 import { addDislikeInfo, hasDislike } from '@renderer/core/dislikeList'
 import { playNext } from '@renderer/core/player'
 import { playMusicInfo } from '@renderer/store/player/state'
+import { getDownloadedFilePath, refreshDownloadedFiles } from '@renderer/store/download/useDownloadedMap'
+import { removeDownloadTasks } from '@renderer/store/download/action'
+import { downloadTasksGet } from '@renderer/utils/ipc'
 
 
 export default ({ props, list, selectedList, removeAllSelect }) => {
@@ -68,11 +71,35 @@ export default ({ props, list, selectedList, removeAllSelect }) => {
     }
   }
 
+  const handleDeleteLocalFile = async(index) => {
+    const minfo = list.value[index]
+    if (!minfo) return
+    const filePath = getDownloadedFilePath(minfo)
+    if (!filePath) return
+    try {
+      await trashItem(filePath)
+    } catch (err) {
+      console.log(err)
+      dialog({ message: t('list__delete_local_file_failed') })
+      return
+    }
+    try {
+      const fileName = filePath.split(/[/\\]/).pop()
+      const tasks = await downloadTasksGet()
+      const ids = tasks.filter(task => task.metadata.fileName === fileName).map(task => task.id)
+      if (ids.length) await removeDownloadTasks(ids)
+    } catch (err) {
+      console.log(err)
+    }
+    refreshDownloadedFiles()
+  }
+
   return {
     handleSearch,
     handleOpenMusicDetail,
     handleCopyName,
     handleDislikeMusic,
     handleRemoveMusic,
+    handleDeleteLocalFile,
   }
 }

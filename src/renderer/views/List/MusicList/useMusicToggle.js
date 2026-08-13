@@ -21,13 +21,9 @@ export default (props, list) => {
 
   const toggleSource = async(toggleMusicInfo) => {
     const oldId = musicInfo.value.id
-    let oldIdx = list.value.findIndex(m => m.id == oldId)
-    if (oldIdx < 0) {
-      isShowMusicToggleModal.value = false
-      await addListMusics(props.listId, [toggleMusicInfo])
-      return
-    }
     const id = toggleMusicInfo.id
+    if (id == oldId) return
+    let oldIdx = list.value.findIndex(m => m.id == oldId)
     const index = list.value.findIndex(m => m.id == id)
     const removeIds = [oldId]
     if (index > -1) {
@@ -41,8 +37,10 @@ export default (props, list) => {
     isShowMusicToggleModal.value = false
     await removeListMusics({ listId: props.listId, ids: removeIds })
     await addListMusics(props.listId, [toggleMusicInfo], 'bottom')
-    if (index != -1 && index < oldIdx) oldIdx--
-    await updateListMusicsPosition({ listId: props.listId, ids: [id], position: oldIdx })
+    if (oldIdx > -1) {
+      if (index != -1 && index < oldIdx) oldIdx--
+      await updateListMusicsPosition({ listId: props.listId, ids: [id], position: oldIdx })
+    }
     if (playMusicInfo.listId == props.listId && playMusicInfo.musicInfo?.id == oldId) {
       playListById(props.listId, toggleMusicInfo.id)
     }

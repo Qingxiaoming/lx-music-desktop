@@ -24,6 +24,7 @@ const defaultSetting: LX.AppSetting = {
   'common.showChangeLog': true,
 
   'player.startupAutoPlay': false,
+  'player.preferDownloadedFile': false,
   'player.togglePlayMethod': 'listLoop',
   'player.playQuality': '128k',
   'player.isShowTaskProgess': true,

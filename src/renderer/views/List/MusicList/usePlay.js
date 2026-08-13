@@ -1,5 +1,10 @@
 import { addTempPlayList } from '@renderer/store/player/action'
-import { playList } from '@renderer/core/player'
+import { playList, playNext } from '@renderer/core/player'
+import { playMusicInfo } from '@renderer/store/player/state'
+import { LIST_IDS } from '@common/constants'
+import { getDownloadedFilePath, refreshDownloadedFiles } from '@renderer/store/download/useDownloadedMap'
+import { checkPath } from '@common/utils/nodejs'
+import { dialog } from '@renderer/plugins/Dialog'
 
 export default ({ props, selectedList, list, removeAllSelect }) => {
   let clickTime = 0
@@ -32,9 +37,39 @@ export default ({ props, selectedList, list, removeAllSelect }) => {
     clickIndex = -1
   }
 
+  const handlePlayDownloadedFile = async(index) => {
+    const musicInfo = list.value[index]
+    if (!musicInfo) return
+    const filePath = getDownloadedFilePath(musicInfo)
+    if (!filePath) return
+    if (!await checkPath(filePath)) {
+      refreshDownloadedFiles()
+      dialog({ message: window.i18n.t('list__play_downloaded_file_missing') })
+      return
+    }
+    const localMusicInfo = {
+      id: filePath,
+      name: musicInfo.name,
+      singer: musicInfo.singer,
+      source: 'local',
+      interval: musicInfo.interval ?? '',
+      meta: {
+        albumName: musicInfo.meta?.albumName ?? '',
+        filePath,
+        songId: filePath,
+        picUrl: '',
+        ext: filePath.includes('.') ? filePath.split('.').pop() : '',
+      },
+    }
+    const isPlaying = !!playMusicInfo.musicInfo
+    addTempPlayList([{ listId: LIST_IDS.PLAY_LATER, musicInfo: localMusicInfo, isTop: true }])
+    if (isPlaying) playNext()
+  }
+
   return {
     handlePlayMusic,
     handlePlayMusicLater,
     doubleClickPlay,
+    handlePlayDownloadedFile,
   }
 }

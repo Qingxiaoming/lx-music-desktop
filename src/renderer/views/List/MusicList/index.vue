@@ -28,7 +28,7 @@
         @scroll="saveListPosition" @contextmenu.capture="handleListRightClick"
       >
         <div
-          class="list-item" :class="[{ [$style.active]: playerInfo.isPlayList && playerInfo.playIndex === index }, { selected: selectedIndex == index || rightClickSelectedIndex == index }, { active: selectedList.includes(item) }, { disabled: !assertApiSupport(item.source) }]"
+          class="list-item" :class="[{ [$style.active]: playerInfo.isPlayList && playerInfo.playIndex === index }, { selected: selectedIndex == index || rightClickSelectedIndex == index }, { active: selectedList.includes(item) }, { disabled: !assertApiSupport(item.source) }, { [$style.downloaded]: downloadedIds.has(item.id) }, { [$style.mismatched]: isDownloadedSoftMatch(item) }, { [$style.mismatchedDuration]: isDownloadedDurationMismatch(item) }]"
           @click="handleListItemClick($event, index)" @contextmenu="handleListItemRightClick($event, index)"
         >
           <div class="list-item-cell no-select" :class="$style.num" style="flex: 0 0 5%;">
@@ -49,7 +49,7 @@
           <div class="list-item-cell" style="flex: 0 0 22%;"><span class="select" :aria-label="item.meta.albumName">{{ item.meta.albumName }}</span></div>
           <div class="list-item-cell" style="flex: 0 0 9%;"><span class="no-select">{{ item.interval || '--/--' }}</span></div>
           <div class="list-item-cell" style="flex: 0 0 16%; padding-left: 0; padding-right: 0;">
-            <material-list-buttons :index="index" :download-btn="assertApiSupport(item.source) && item.source != 'local'" @btn-click="handleListBtnClick" />
+            <material-list-buttons :index="index" :download-btn="assertApiSupport(item.source) && item.source != 'local'" :local-play-btn="hasDownloadedFile(item)" @btn-click="handleListBtnClick" />
           </div>
         </div>
       </base-virtualized-list>
@@ -60,7 +60,7 @@
       >
         <div
           class="list-item"
-          :class="[{ [$style.active]: playerInfo.isPlayList && playerInfo.playIndex === index }, { selected: selectedIndex == index || rightClickSelectedIndex == index }, { active: selectedList.includes(item) }, { disabled: !assertApiSupport(item.source) }]"
+          :class="[{ [$style.active]: playerInfo.isPlayList && playerInfo.playIndex === index }, { selected: selectedIndex == index || rightClickSelectedIndex == index }, { active: selectedList.includes(item) }, { disabled: !assertApiSupport(item.source) }, { [$style.downloaded]: downloadedIds.has(item.id) }, { [$style.mismatched]: isDownloadedSoftMatch(item) }, { [$style.mismatchedDuration]: isDownloadedDurationMismatch(item) }]"
           @click="handleListItemClick($event, index)" @contextmenu="handleListItemRightClick($event, index)"
         >
           <div class="list-item-cell no-select" :class="$style.num" style="flex: 0 0 5%;">
@@ -121,6 +121,7 @@ import useSearch from './useSearch'
 import useListScroll from './useListScroll'
 import useMusicToggle from './useMusicToggle'
 import { appSetting } from '@renderer/store/setting'
+import { downloadedFilePathMap, isDownloadedSoftMatch, isDownloadedDurationMismatch, getDownloadedFilePath } from '@renderer/store/download/useDownloadedMap'
 export default {
   name: 'MusicList',
   components: {
@@ -173,6 +174,7 @@ export default {
     const {
       handlePlayMusic,
       handlePlayMusicLater,
+      handlePlayDownloadedFile,
       doubleClickPlay,
     } = usePlay({ props, selectedList, list, removeAllSelect })
 
@@ -214,6 +216,7 @@ export default {
       handleCopyName,
       handleDislikeMusic,
       handleRemoveMusic,
+      handleDeleteLocalFile,
     } = useMusicActions({ props, list, removeAllSelect, selectedList })
 
     const {
@@ -238,6 +241,7 @@ export default {
       handleCopyName,
       handleDislikeMusic,
       handleRemoveMusic,
+      handleDeleteLocalFile,
     })
 
     const {
@@ -294,8 +298,12 @@ export default {
         case 'listAdd':
           handleShowMusicAddModal(index, true)
           break
+        case 'localPlay':
+          void handlePlayDownloadedFile(index)
+          break
       }
     }
+    const hasDownloadedFile = (item) => !!getDownloadedFilePath(item)
     const scrollToTop = () => {
       listRef.value.scrollTo(0, true)
     }
@@ -351,6 +359,11 @@ export default {
 
       actionButtonsVisible,
 
+      downloadedIds: downloadedFilePathMap,
+      isDownloadedSoftMatch,
+      isDownloadedDurationMismatch,
+      hasDownloadedFile,
+
       isShowMusicToggleModal,
       selectedToggleMusicInfo,
       toggleSource,
@@ -405,6 +418,15 @@ export default {
 
   color: var(--color-button-font);
   opacity: .7;
+}
+.downloaded {
+  background-color: var(--color-primary-alpha-900);
+}
+.mismatched {
+  background-color: rgba(255, 193, 7, 0.18);
+}
+.mismatchedDuration {
+  background-color: rgba(255, 82, 82, 0.18);
 }
 .content {
   min-height: 0;

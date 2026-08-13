@@ -5,6 +5,11 @@
         <use xlink:href="#icon-testPlay" />
       </svg>
     </button>
+    <button v-if="localPlayBtn" type="button" :aria-label="$t('list__play_downloaded_file')" @contextmenu.capture.stop @click.stop="handleClick('localPlay')">
+      <svg v-once version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="-61 0 512 512" space="preserve">
+        <use xlink:href="#icon-musicFile" />
+      </svg>
+    </button>
     <button v-if="listAddBtn" type="button" :aria-label="$t('list__add_to')" @contextmenu.capture.stop @click.stop="handleClick('listAdd')">
       <svg v-once version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 42 42" space="preserve">
         <use xlink:href="#icon-addTo" />
@@ -71,6 +76,10 @@ export default {
     playBtn: {
       type: Boolean,
       default: true,
+    },
+    localPlayBtn: {
+      type: Boolean,
+      default: false,
     },
     listAddBtn: {
       type: Boolean,

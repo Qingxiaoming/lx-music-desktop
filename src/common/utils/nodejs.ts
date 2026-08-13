@@ -108,6 +108,7 @@ export const removeFile = async(path: string) => new Promise<void>((resolve, rej
 })
 
 export const readFile = async(path: string) => fs.promises.readFile(path)
+export const readDir = async(path: string) => fs.promises.readdir(path)
 
 
 /**

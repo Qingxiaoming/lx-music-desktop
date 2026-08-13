@@ -8,6 +8,7 @@ import {
 import {
   downloadList,
 } from './state'
+import { addDownloadedFile } from '@renderer/store/download/useDownloadedMap'
 import { markRaw, toRaw } from '@common/utils/vueTools'
 import { getMusicUrl, getPicUrl, getLyricInfo } from '@renderer/core/music/online'
 import { appSetting } from '../setting'
@@ -124,7 +125,10 @@ const setStatus = (downloadInfo: LX.Download.ListItem, status: LX.Download.Downl
 
   if (downloadInfo.statusText == statusText && downloadInfo.status == status) return
 
-  if (status == DOWNLOAD_STATUS.COMPLETED) downloadInfo.isComplate = true
+  if (status == DOWNLOAD_STATUS.COMPLETED) {
+    downloadInfo.isComplate = true
+    if (downloadInfo.status != DOWNLOAD_STATUS.COMPLETED) void addDownloadedFile(downloadInfo)
+  }
   downloadInfo.statusText = statusText
   downloadInfo.status = status
   throttleUpdateTask([downloadInfo])
@@ -339,9 +343,10 @@ const checkStartTask = async() => {
  * 过滤重复任务
  * @param list
  */
-const filterTask = (list: LX.Download.ListItem[]) => {
+const filterTask = (list: LX.Download.ListItem[], existingList: LX.Download.ListItem[] = downloadList) => {
   const set = new Set<string>()
   for (const item of downloadList) set.add(item.id)
+  for (const item of existingList) set.add(item.id)
   return list.filter(item => {
     if (set.has(item.id)) return false
     markRaw(item.metadata)
@@ -359,7 +364,7 @@ export const createDownloadTasks = async(list: LX.Music.MusicInfoOnline[], quali
   const tasks = filterTask(await window.lx.worker.download.createDownloadTasks(list, quality,
     appSetting['download.fileName'],
     toRaw(qualityList.value), listId),
-  )
+  await downloadTasksGet())
 
   if (tasks.length) await addTasks(tasks)
   void checkStartTask()

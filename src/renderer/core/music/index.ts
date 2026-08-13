@@ -17,6 +17,8 @@ import {
   getPicUrl as getLocalPicUrl,
   getLyricInfo as getLocalLyricInfo,
 } from './local'
+import { appSetting } from '@renderer/store/setting'
+import { downloadedFilePathMap } from '@renderer/store/download/useDownloadedMap'
 
 
 export const getMusicUrl = async({
@@ -37,6 +39,10 @@ export const getMusicUrl = async({
   } else if (musicInfo.source == 'local') {
     return getLocalMusicUrl({ musicInfo, isRefresh, onToggleSource, allowToggleSource })
   } else {
+    if (!isRefresh && appSetting['player.preferDownloadedFile']) {
+      const filePath = downloadedFilePathMap.get(musicInfo.id)
+      if (filePath) return filePath
+    }
     return getOnlineMusicUrl({ musicInfo, isRefresh, quality, onToggleSource, allowToggleSource })
   }
 }

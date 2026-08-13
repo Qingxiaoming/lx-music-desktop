@@ -9,6 +9,14 @@ export const openDirInExplorer = (dir: string) => {
   shell.showItemInFolder(dir)
 }
 
+/**
+ * 将文件移入回收站
+ * @param path 文件路径
+ */
+export const trashItem = async(path: string) => {
+  await shell.trashItem(path)
+}
+
 
 /**
  * 在浏览器打开URL

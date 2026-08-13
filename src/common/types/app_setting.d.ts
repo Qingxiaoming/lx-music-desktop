@@ -89,6 +89,11 @@ declare global {
       'player.startupAutoPlay': boolean
 
       /**
+       * 歌单中的歌曲已下载时，优先播放下载目录中的本地文件
+       */
+      'player.preferDownloadedFile': boolean
+
+      /**
        * 切歌模式
        */
       'player.togglePlayMethod': 'listLoop' | 'random' | 'list' | 'singleLoop' | 'none'

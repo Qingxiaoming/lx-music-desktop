@@ -2,6 +2,7 @@ import { computed, ref, shallowReactive, reactive, nextTick } from '@common/util
 import musicSdk from '@renderer/utils/musicSdk'
 import { useI18n } from '@renderer/plugins/i18n'
 import { hasDislike } from '@renderer/core/dislikeList'
+import { getDownloadedFilePath } from '@renderer/store/download/useDownloadedMap'
 
 export default ({
   assertApiSupport,
@@ -19,6 +20,7 @@ export default ({
   handleCopyName,
   handleDislikeMusic,
   handleRemoveMusic,
+  handleDeleteLocalFile,
 }) => {
   const itemMenuControl = reactive({
     play: true,
@@ -33,6 +35,7 @@ export default ({
     dislike: true,
     remove: true,
     sourceDetail: true,
+    localFile: true,
   })
   const t = useI18n()
   const menuLocation = shallowReactive({ x: 0, y: 0 })
@@ -76,6 +79,11 @@ export default ({
         disabled: !itemMenuControl.toggleSource,
       },
       {
+        name: t('list__delete_local_file'),
+        action: 'localFile',
+        disabled: !itemMenuControl.localFile,
+      },
+      {
         name: t('list__copy_name'),
         action: 'copyName',
         disabled: !itemMenuControl.copyName,
@@ -110,6 +118,7 @@ export default ({
     itemMenuControl.download = assertApiSupport(musicInfo.source) && musicInfo.source != 'local'
 
     itemMenuControl.dislike = !hasDislike(musicInfo)
+    itemMenuControl.localFile = !!getDownloadedFilePath(musicInfo)
 
     menuLocation.x = event.pageX
     menuLocation.y = event.pageY
@@ -163,6 +172,9 @@ export default ({
         break
       case 'remove':
         handleRemoveMusic(index)
+        break
+      case 'localFile':
+        handleDeleteLocalFile(index)
         break
       case 'sourceDetail':
         handleOpenMusicDetail(index)

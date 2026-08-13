@@ -4,6 +4,9 @@ dd
   .gap-top
     base-checkbox(id="setting_player_startup_auto_play" :model-value="appSetting['player.startupAutoPlay']" :label="$t('setting__play_startup_auto_play')" @update:model-value="updateSetting({'player.startupAutoPlay': $event})")
   .gap-top
+    base-checkbox(id="setting_player_prefer_downloaded_file" :model-value="appSetting['player.preferDownloadedFile']" :label="$t('setting__play_prefer_downloaded_file')" @update:model-value="updateSetting({'player.preferDownloadedFile': $event})")
+    svg-icon(class="help-icon" name="help-circle-outline" :aria-label="$t('setting__play_prefer_downloaded_file_tip')")
+  .gap-top
     base-checkbox(id="setting_player_power_save_blocker" :model-value="appSetting['player.powerSaveBlocker']" :label="$t('setting__play_power_save_blocker')" @update:model-value="handleUpdatePowerSaveBlocker")
   .gap-top
     base-checkbox(id="setting_player_save_play_time" :model-value="appSetting['player.isSavePlayTime']" :label="$t('setting__play_save_play_time')" @update:model-value="updateSetting({'player.isSavePlayTime': $event})")
