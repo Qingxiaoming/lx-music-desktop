@@ -158,14 +158,23 @@ function startMain() {
       }
 
       // logStats('Main', stats)
-      if (electronProcess) {
-        electronProcess.removeAllListeners()
-        treeKill(electronProcess.pid)
-      }
       if (firstRun) {
         firstRun = false
         resolve()
-      } else runElectronDelay()
+        return
+      }
+      // 等待旧实例完全退出后再启动新实例，
+      // 避免单例锁竞争导致新实例闪退、旧实例残留成孤儿进程
+      if (electronProcess) {
+        const oldProcess = electronProcess
+        electronProcess = null
+        oldProcess.removeAllListeners()
+        treeKill(oldProcess.pid, () => {
+          runElectronDelay()
+        })
+      } else {
+        runElectronDelay()
+      }
     })
   })
 }

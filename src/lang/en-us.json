@@ -90,6 +90,8 @@
   "list__download": "Download",
   "list__play_downloaded_file": "Play downloaded file",
   "list__play_downloaded_file_missing": "Downloaded local file not found, list refreshed",
+  "list__replace_with_local_file": "Replace with local file",
+  "list__replace_with_local_file_failed": "Failed to parse local file, cannot replace",
   "list__export_part_desc": "Choose where to save the list file",
   "list__file": "Reveal File",
   "list__import_part_button_cancel": "Don't",

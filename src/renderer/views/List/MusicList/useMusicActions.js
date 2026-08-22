@@ -3,15 +3,16 @@ import musicSdk from '@renderer/utils/musicSdk'
 import { openUrl, clipboardWriteText, trashItem } from '@common/utils/electron'
 import { dialog } from '@renderer/plugins/Dialog'
 import { useI18n } from '@renderer/plugins/i18n'
-import { removeListMusics } from '@renderer/store/list/action'
+import { addListMusics, removeListMusics, updateListMusicsPosition } from '@renderer/store/list/action'
 import { appSetting } from '@renderer/store/setting'
 import { formatMusicName, toOldMusicInfo } from '@renderer/utils/index'
 import { addDislikeInfo, hasDislike } from '@renderer/core/dislikeList'
-import { playNext } from '@renderer/core/player'
+import { playNext, playListById } from '@renderer/core/player'
 import { playMusicInfo } from '@renderer/store/player/state'
 import { getDownloadedFilePath, refreshDownloadedFiles } from '@renderer/store/download/useDownloadedMap'
 import { removeDownloadTasks } from '@renderer/store/download/action'
 import { downloadTasksGet } from '@renderer/utils/ipc'
+import { checkPath } from '@common/utils/nodejs'
 
 
 export default ({ props, list, selectedList, removeAllSelect }) => {
@@ -94,6 +95,35 @@ export default ({ props, list, selectedList, removeAllSelect }) => {
     refreshDownloadedFiles()
   }
 
+  const handleReplaceWithLocalFile = async(index) => {
+    const musicInfo = list.value[index]
+    if (!musicInfo || musicInfo.source == 'local') return
+    const filePath = getDownloadedFilePath(musicInfo)
+    if (!filePath) return
+    if (!await checkPath(filePath)) {
+      refreshDownloadedFiles()
+      dialog({ message: t('list__play_downloaded_file_missing') })
+      return
+    }
+
+    const oldId = musicInfo.id
+    const oldIdx = list.value.findIndex(m => m.id == oldId)
+    const [localMusicInfo] = await window.lx.worker.main.createLocalMusicInfos([filePath])
+    if (!localMusicInfo) {
+      dialog({ message: t('list__replace_with_local_file_failed') })
+      return
+    }
+
+    await removeListMusics({ listId: props.listId, ids: [oldId] })
+    await addListMusics(props.listId, [localMusicInfo])
+    if (oldIdx > -1) {
+      await updateListMusicsPosition({ listId: props.listId, ids: [localMusicInfo.id], position: oldIdx })
+    }
+    if (playMusicInfo.listId == props.listId && playMusicInfo.musicInfo?.id == oldId) {
+      playListById(props.listId, localMusicInfo.id)
+    }
+  }
+
   return {
     handleSearch,
     handleOpenMusicDetail,
@@ -101,5 +131,6 @@ export default ({ props, list, selectedList, removeAllSelect }) => {
     handleDislikeMusic,
     handleRemoveMusic,
     handleDeleteLocalFile,
+    handleReplaceWithLocalFile,
   }
 }

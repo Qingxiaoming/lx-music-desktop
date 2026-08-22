@@ -81,27 +81,47 @@ export const initGlobalData = () => {
 }
 
 export const initSingleInstanceHandle = () => {
-  // 单例应用程序
-  if (!app.requestSingleInstanceLock()) {
+  const registerSecondInstanceHandler = () => {
+    app.on('second-instance', (event, argv, cwd) => {
+      if (isExistMainWindow()) {
+        const envParams = parseEnvParams(argv)
+        if (envParams.deeplink) {
+          global.envParams.deeplink = envParams.deeplink
+          global.lx.event_app.deeplink(global.envParams.deeplink)
+          return
+        }
+        if (envParams.cmdParams.hidden !== true) {
+          showMainWindow()
+        }
+      } else {
+        app.quit()
+      }
+    })
+  }
+
+  const quitByLock = () => {
+    log.info('[lx-music] Another instance is already running, current instance exits.')
     app.quit()
     process.exit(0)
   }
 
-  app.on('second-instance', (event, argv, cwd) => {
-    if (isExistMainWindow()) {
-      const envParams = parseEnvParams(argv)
-      if (envParams.deeplink) {
-        global.envParams.deeplink = envParams.deeplink
-        global.lx.event_app.deeplink(global.envParams.deeplink)
-        return
-      }
-      if (envParams.cmdParams.hidden !== true) {
-        showMainWindow()
-      }
-    } else {
-      app.quit()
+  // 开发模式下主进程代码变更会触发 webpack 重启，旧实例可能尚未释放单例锁，
+  // 短暂重试等待锁释放，避免新实例直接退出或旧实例残留成孤儿进程
+  const tryAcquireSingleInstanceLock = (retryCount: number) => {
+    if (app.requestSingleInstanceLock()) {
+      registerSecondInstanceHandler()
+      return
     }
-  })
+    if (process.env.NODE_ENV == 'development' && retryCount > 0) {
+      setTimeout(() => {
+        tryAcquireSingleInstanceLock(retryCount - 1)
+      }, 300)
+      return
+    }
+    quitByLock()
+  }
+
+  tryAcquireSingleInstanceLock(5)
 }
 
 export const applyElectronEnvParams = () => {

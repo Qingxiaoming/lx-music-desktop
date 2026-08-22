@@ -90,6 +90,8 @@
   "list__download": "下載",
   "list__play_downloaded_file": "播放下載檔案",
   "list__play_downloaded_file_missing": "本機下載檔案不存在，已重新整理清單",
+  "list__replace_with_local_file": "用本機檔案取代",
+  "list__replace_with_local_file_failed": "本機檔案解析失敗，無法取代",
   "list__export_part_desc": "選取清單檔案儲存位置",
   "list__file": "定位檔案",
   "list__import_part_button_cancel": "不要啊",

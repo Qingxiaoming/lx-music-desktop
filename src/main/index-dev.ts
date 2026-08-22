@@ -7,7 +7,6 @@
 
 import { app } from 'electron'
 import electronDebug from 'electron-debug'
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import { openDevTools } from './utils'
 // Install `electron-debug` with `devtron`
 electronDebug({
@@ -15,30 +14,18 @@ electronDebug({
   devToolsMode: 'undocked',
 })
 
-// Install `vue-devtools`
+// 不再自动安装 Vue DevTools：
+// 本机无法访问 Google CRX 下载地址，安装必然失败，每次启动都会产生
+// “Invalid header: Does not start with Cr24” 及 session.getAllExtensions 弃用警告等噪音。
+// 如需使用，可手动下载扩展后通过 session.extensions.loadExtension 加载。
 app.on('ready', () => {
   global.lx.event_app.on('main_window_created', (win) => {
     openDevTools(win.webContents)
-    installExtension(VUEJS_DEVTOOLS, { session: win.webContents.session })
-      .then((name: string) => {
-        console.log(`[main window] Added Extension:  ${name}`)
-      })
-      .catch((err: Error) => {
-        console.log('[main window] An error occurred: ', err)
-      })
   })
   global.lx.event_app.on('desktop_lyric_window_created', (win) => {
     openDevTools(win.webContents)
-    installExtension(VUEJS_DEVTOOLS, { session: win.webContents.session })
-      .then((name: string) => {
-        console.log(`[lyric window] Added Extension:  ${name}`)
-      })
-      .catch((err: Error) => {
-        console.log('[lyric window] An error occurred: ', err)
-      })
   })
 })
 
 // Require `main` process to boot app
 require('./index')
-

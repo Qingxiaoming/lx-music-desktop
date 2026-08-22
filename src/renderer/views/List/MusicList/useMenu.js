@@ -21,6 +21,7 @@ export default ({
   handleDislikeMusic,
   handleRemoveMusic,
   handleDeleteLocalFile,
+  handleReplaceWithLocalFile,
 }) => {
   const itemMenuControl = reactive({
     play: true,
@@ -36,6 +37,7 @@ export default ({
     remove: true,
     sourceDetail: true,
     localFile: true,
+    replaceLocalFile: false,
   })
   const t = useI18n()
   const menuLocation = shallowReactive({ x: 0, y: 0 })
@@ -78,6 +80,13 @@ export default ({
         action: 'toggleSource',
         disabled: !itemMenuControl.toggleSource,
       },
+      ...(itemMenuControl.replaceLocalFile
+        ? [{
+            name: t('list__replace_with_local_file'),
+            action: 'replaceLocalFile',
+            disabled: false,
+          }]
+        : []),
       {
         name: t('list__delete_local_file'),
         action: 'localFile',
@@ -119,6 +128,7 @@ export default ({
 
     itemMenuControl.dislike = !hasDislike(musicInfo)
     itemMenuControl.localFile = !!getDownloadedFilePath(musicInfo)
+    itemMenuControl.replaceLocalFile = musicInfo.source != 'local' && !!getDownloadedFilePath(musicInfo)
 
     menuLocation.x = event.pageX
     menuLocation.y = event.pageY
@@ -160,6 +170,9 @@ export default ({
         break
       case 'toggleSource':
         handleShowMusicToggleModal(index)
+        break
+      case 'replaceLocalFile':
+        handleReplaceWithLocalFile(index)
         break
       case 'download':
         handleShowDownloadModal(index)

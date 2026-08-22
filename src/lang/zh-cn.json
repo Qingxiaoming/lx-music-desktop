@@ -90,6 +90,8 @@
   "list__download": "下载",
   "list__play_downloaded_file": "播放下载文件",
   "list__play_downloaded_file_missing": "本地下载文件不存在，已刷新列表",
+  "list__replace_with_local_file": "用本地文件替换",
+  "list__replace_with_local_file_failed": "本地文件解析失败，无法替换",
   "list__export_part_desc": "选择列表文件保存位置",
   "list__file": "定位文件",
   "list__import_part_button_cancel": "不要啊",
